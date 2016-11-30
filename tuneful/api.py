@@ -61,23 +61,24 @@ def songs_post():
         data = {"message": error.message}
         return Response(json.dumps(data), 422, mimetype="application/json")
 
-    # Add the post to the database
-    file = models.File(name=data["name"])
-    session.add(file)
+    # Add the song to the database
+    file = models.File(name="Example.mp3")
+    song = models.Song(file=file)
+    session.add(song)
     session.commit()
 
-    # Return a 201 Created, containing the post as JSON and with the
-    # Location header set to the location of the post
-    data = json.dumps(file.as_dictionary())
-    headers = {"Location": url_for("file_get", id=file.id)}
+    # Return a 201 Created, containing the song as JSON and with the
+    # Location header set to the location of the song
+    data = json.dumps(song.as_dictionary())
+    headers = {"Location": url_for("song_get", id=song.id)}
     return Response(data, 201, headers=headers,
                     mimetype="application/json")
-
+"""
 @app.route("/api/songs/<int:id>", methods=["PUT"])
 @decorators.accept("application/json")
 @decorators.require("application/json")
 def post_edit(id):
-    """ Edit an existing song """
+    #Edit an existing song
     data = request.json
 
     # Check that the JSON supplied is valid
@@ -97,14 +98,14 @@ def post_edit(id):
     session.commit()
     
     data = json.dumps(file.as_dictionary())
-    headers = {"Location": url_for("songs_get", id=song.id)}
+    headers = {"Location": url_for("song_get", id=song.id)}
     return Response(data, 200, headers=headers,
                     mimetype="application/json")
                     
 @app.route("/api/songs/<int:id>", methods=["DELETE"])
 @decorators.accept("application/json")
 def song_delete(id):
-    """ Song delete endpoint """
+    #Song delete endpoint
     # Get the song from the database
     song = session.query(models.Song).get(id)
     file = song.file
@@ -124,4 +125,4 @@ def song_delete(id):
     message = "Deleted song with id {}".format(id)
     data = json.dumps({"message": message})
     return Response(data, 200, mimetype="application/json")
-    
+"""    

@@ -84,11 +84,42 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.mimetype, "application/json")
 
-        song = json.loads(response.data.decode("ascii"))
-        self.assertEqual(fileB["name"], "SongB.mp3")
+        data = json.loads(response.data.decode("ascii"))
+        self.assertEqual(data["file"]["name"], "SongB.mp3")
+        
 
+    def test_post_song(self):
+        #Add a new song
+        data = {
+            "file": {
+                "name": "Example.mp3",
+                }
+            }
+
+        response = self.client.post("/api/songs",
+            data=json.dumps(data),
+            content_type="application/json",
+            headers=[("Accept", "application/json")]
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.mimetype, "application/json")
+        self.assertEqual(urlparse(response.headers.get("Location")).path,
+                         "/api/songs/1")
+
+        data = json.loads(response.data.decode("ascii"))
+        self.assertEqual(data["id"], 1)
+        self.assertEqual(data["name"], "Example.mp3")
+
+        songs = session.query(models.Song).all()
+        self.assertEqual(len(songs), 1)
+
+        song = songs[0]
+        self.assertEqual(song.name, "Example.mp3")
+
+"""
     def test_edit_song(self):
-        """ Editing an existing song """
+        #Editing an existing song
         file = models.File(name="Example.mp3")
         song = models.Song(file=file)
         session.add_all([file, song])
@@ -122,7 +153,7 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(file.name, "Edited.mp3")
 
     def test_delete_song(self):
-        """ Deleting songs from a populated database """
+        #Deleting songs from a populated database
         fileA = models.File(name = "SongA.mp3")
         songA = models.Song(file = fileA)
         fileB = models.File(name = "SongB.mp3")
@@ -145,3 +176,4 @@ class TestAPI(unittest.TestCase):
         # Assert that the right song was deleted
         songB = data[1]
         self.assertEqual(songB["file"]["name"], "SongB.mp3")
+"""
