@@ -109,20 +109,20 @@ class TestAPI(unittest.TestCase):
 
         data = json.loads(response.data.decode("ascii"))
         self.assertEqual(data["id"], 1)
-        self.assertEqual(data["name"], "Example.mp3")
+        self.assertEqual(data["file"]["name"], "Example.mp3")
 
         songs = session.query(models.Song).all()
         self.assertEqual(len(songs), 1)
 
         song = songs[0]
-        self.assertEqual(song.name, "Example.mp3")
+        self.assertEqual(song.file.name, "Example.mp3")
 
-"""
+
     def test_edit_song(self):
         #Editing an existing song
         file = models.File(name="Example.mp3")
         song = models.Song(file=file)
-        session.add_all([file, song])
+        session.add(song)
         session.commit()
 
         data = {
@@ -174,6 +174,5 @@ class TestAPI(unittest.TestCase):
         songs = session.query(models.Song).all()
         self.assertEqual(len(songs), 1)
         # Assert that the right song was deleted
-        songB = data[1]
-        self.assertEqual(songB["file"]["name"], "SongB.mp3")
-"""
+        song = songs[0]
+        self.assertEqual(song.file.name, "SongB.mp3")
