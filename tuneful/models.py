@@ -33,9 +33,9 @@ class File(Base):
     #Adding one-2-one relationship with Song
     song = relationship("Song", uselist=False, backref="file")
     #Using as_dictionary method
-def as_dictionary(self):
-    return {
-        "id": self.id,
-        "name": self.name,
-        "path": url_for("uploaded_file", name=self.name)
-    }
+    def as_dictionary(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "path": url_for("uploaded_file", name=self.name)
+        }
