@@ -61,7 +61,7 @@ def songs_post():
 @app.route("/api/songs/<int:id>", methods=["PUT"])
 @decorators.accept("application/json")
 @decorators.require("application/json")
-def post_edit(id):
+def song_edit(id):
     #Edit an existing song
     data = request.json
 
@@ -100,4 +100,25 @@ def song_delete(id):
     message = "Deleted song with id {}".format(id)
     data = json.dumps({"message": message})
     return Response(data, 200, mimetype="application/json")
-  
+
+@app.route("/uploads/<name>", methods=["GET"])
+def uploaded_file(name):
+    return send_from_directory(upload_path(), name)
+    
+@app.route("/api/files", methods=["POST"])
+@decorators.require("multipart/form-data")
+@decorators.accept("application/json")
+def file_post():
+    file = request.files.get("file")
+    if not file:
+        data = {"message": "Could not find file data"}
+        return Response(json.dumps(data), 422, mimetype="application/json")
+
+    filename = secure_filename(file.name)
+    db_file = models.File(name=filename)
+    session.add(db_file)
+    session.commit()
+    file.save(upload_path(filename))
+
+    data = db_file.as_dictionary()
+    return Response(json.dumps(data), 201, mimetype="application/json")

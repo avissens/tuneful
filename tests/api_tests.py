@@ -4,7 +4,7 @@ import shutil
 import json
 try: from urllib.parse import urlparse
 except ImportError: from urlparse import urlparse # Py2 compatibility
-from io import StringIO
+from io import StringIO, BytesIO
 
 import sys; print(list(sys.modules.keys()))
 # Configure our app to use the testing databse
@@ -87,7 +87,6 @@ class TestAPI(unittest.TestCase):
         data = json.loads(response.data.decode("ascii"))
         self.assertEqual(data["file"]["name"], "SongB.mp3")
         
-
     def test_post_song(self):
         #Add a new song
         data = {
@@ -116,7 +115,6 @@ class TestAPI(unittest.TestCase):
 
         song = songs[0]
         self.assertEqual(song.file.name, "Example.mp3")
-
 
     def test_edit_song(self):
         #Editing an existing song
@@ -176,3 +174,37 @@ class TestAPI(unittest.TestCase):
         # Assert that the right song was deleted
         song = songs[0]
         self.assertEqual(song.file.name, "SongB.mp3")
+
+    def test_get_uploaded_file(self):
+        path =  upload_path("test.txt")
+        with open(path, "wb") as f:
+            f.write(b"File contents")
+
+        response = self.client.get("/uploads/test.txt")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, "text/plain")
+        self.assertEqual(response.data, b"File contents")
+        
+    def test_file_upload(self):
+        data = {
+            "file": (BytesIO(b"File contents"), "test.txt")
+        }
+
+        response = self.client.post("/api/files",
+            data=data,
+            content_type="multipart/form-data",
+            headers=[("Accept", "application/json")]
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.mimetype, "application/json")
+
+        data = json.loads(response.data.decode("ascii"))
+        self.assertEqual(urlparse(data["path"]).path, "/uploads/test.txt")
+
+        path = upload_path("test.txt")
+        self.assertTrue(os.path.isfile(path))
+        with open(path, "rb") as f:
+            contents = f.read()
+        self.assertEqual(contents, b"File contents")
