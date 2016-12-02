@@ -115,6 +115,7 @@ def file_post():
         return Response(json.dumps(data), 422, mimetype="application/json")
 
     filename = secure_filename(file.name)
+    print("file names are", file.name, filename)
     db_file = models.File(name=filename)
     session.add(db_file)
     session.commit()
